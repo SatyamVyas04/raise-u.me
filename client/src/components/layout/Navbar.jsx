@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 
 const Navbar = ({ isSignedIn }) => {
 	return (
-		<div className="relative top-0">
+		<div className="sticky top-0">
 			<nav className="flex justify-between items-center p-4 bg-zinc-800 text-white">
 				<Link to="/" className="text-xl font-bold">
 					RAISE-U.ME
