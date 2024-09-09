@@ -11,4 +11,6 @@ export const sidebarLinks = [
 	{ label: "Profile", route: "/profile", imgUrl: ProfileIcon },
 	{ label: "ResumeEnhancer", route: "/enhancer", imgUrl: DocumentCheckIcon },
 	{ label: "ResumeBuilder", route: "/builder", imgUrl: DocumentPlusIcon },
+	{label:"Saved Templates",route:"/savedtemplates",imgUrl:DocumentPlusIcon}
+
 ];
