@@ -22,8 +22,8 @@ export default function page() {
                 />
 				</div>
 				<div className="flex items-center justify-center mt-20">
-				<Button className="bg-slate-200 w-52 h-12 rounded-md hover:bg-gray-200 ">
-					<p className="text-black p-2 text-lg font-semibold">Enhance your Resume</p>
+				<Button className="bg-primary-foreground w-52 h-12 rounded-md hover:border-foreground hover:border-4 ">
+					<p className="text-foreground p-2 text-lg font-semibold">Enhance your Resume</p>
 				</Button>
 				</div>
 			</div>
