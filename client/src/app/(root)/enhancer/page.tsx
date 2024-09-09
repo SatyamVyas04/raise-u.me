@@ -7,7 +7,7 @@ export default function page() {
 	return (
 		<div className="w-full h-full flex items-center justify-center align-middle flex-col gap-10">
 			
-			<p className="text-5xl font-semibold hover:text-slate-400 hover:cursor-pointer mt-40">Resume Enhancer</p>
+			<p className="text-5xl font-semibold hover:text-slate-400 hover:cursor-pointer mt-20">Resume Enhancer</p>
             <div className="w-[600px] h-[300px] bg-gray-600 rounded-2xl">
 				<div className="bg-slate-800 h-10 items-center flex justify-center text-xl rounded-md">
 					<p className=" text-white rounded-xl px-1 font-semibold">Upload your Resume</p>
