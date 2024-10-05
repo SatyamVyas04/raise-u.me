@@ -5,9 +5,9 @@ import img2 from '@/components/images/image2.png'
 
 export default function Page() {
     return (
-        <div>
-            <p className="text-white text-5xl font-semibold mt-10 hover:text-purple-500 hover:cursor-pointer stagger-text ">Saved Templates</p>
-            <div className='mt-8 flex flex-wrap gap-8'>
+        <div className='flex-1 items-center justify-center'>
+            <p className="text-foreground text-5xl font-semibold mt-10 hover:text-purple-500 hover:cursor-pointer stagger-text text-center">Saved Templates</p>
+            <div className='mt-8 flex flex-wrap items-center justify-center gap-8'>
 
                 <ImageCard image1={img1} />
                 <ImageCard image1={img1} />
