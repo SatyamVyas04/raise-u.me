@@ -1,33 +1,38 @@
-import { Schema, model, Document } from "mongoose";
+import { Schema, model, models, Document } from "mongoose";
 
 interface IUser extends Document {
 	name: string;
+	username: string;
 	skills: string[];
 	occupation: string;
 	education: string[];
 	positionsOfResponsibility: string[];
 	experience: string[];
 	urls: string[];
-	resumeLink: string;
+	resumeUrl: string;
+	resumePublicId: string;
 }
 
 const UserSchema = new Schema<IUser>({
 	name: { type: String, required: true },
+	username: { type: String, required: true, unique: true },
 	skills: { type: [String], required: true },
 	occupation: { type: String, required: true },
 	education: { type: [String], required: true },
 	positionsOfResponsibility: { type: [String], required: true },
 	experience: { type: [String], required: true },
 	urls: { type: [String], required: true },
-	resumeLink: { type: String, required: true },
+	resumeUrl: { type: String, required: true },
+	resumePublicId: { type: String, required: true },
 });
 
-const User = model<IUser>("User", UserSchema);
-
-export default User;
 UserSchema.path("name").validate((name: string) => {
 	return name.length > 0;
 }, "Name cannot be empty.");
+
+UserSchema.path("username").validate((username: string) => {
+	return username.length > 0;
+}, "Username cannot be empty.");
 
 UserSchema.path("skills").validate((skills: string[]) => {
 	return skills.length > 0;
@@ -53,6 +58,14 @@ UserSchema.path("urls").validate((urls: string[]) => {
 	return urls.length > 0;
 }, "There must be at least one URL.");
 
-UserSchema.path("resumeLink").validate((resumeLink: string) => {
-	return resumeLink.length > 0;
-}, "Resume link cannot be empty.");
+UserSchema.path("resumeUrl").validate((resumeUrl: string) => {
+	return resumeUrl.length > 0;
+}, "Resume URL cannot be empty.");
+
+UserSchema.path("resumePublicId").validate((resumePublicId: string) => {
+	return resumePublicId.length > 0;
+}, "Resume public ID cannot be empty.");
+
+const User = models.User || model<IUser>("User", UserSchema);
+
+export default User;

@@ -1,15 +1,15 @@
-// app/api/user/[id]/route.ts
+// app/api/user/[username]/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/dbconnect";
 import User from "@/models/User";
 
 export async function GET(
 	request: NextRequest,
-	{ params }: { params: { id: string } }
+	{ params }: { params: { username: string } }
 ) {
 	try {
 		await dbConnect();
-		const user = await User.findById(params.id);
+		const user = await User.findOne({ username: params.username });
 		if (!user) {
 			return NextResponse.json(
 				{ error: "User not found" },
@@ -27,14 +27,16 @@ export async function GET(
 
 export async function PUT(
 	request: NextRequest,
-	{ params }: { params: { id: string } }
+	{ params }: { params: { username: string } }
 ) {
 	try {
 		await dbConnect();
 		const userData = await request.json();
-		const updatedUser = await User.findByIdAndUpdate(params.id, userData, {
-			new: true,
-		});
+		const updatedUser = await User.findOneAndUpdate(
+			{ username: params.username },
+			userData,
+			{ new: true }
+		);
 		if (!updatedUser) {
 			return NextResponse.json(
 				{ error: "User not found" },
@@ -52,11 +54,13 @@ export async function PUT(
 
 export async function DELETE(
 	request: NextRequest,
-	{ params }: { params: { id: string } }
+	{ params }: { params: { username: string } }
 ) {
 	try {
 		await dbConnect();
-		const deletedUser = await User.findByIdAndDelete(params.id);
+		const deletedUser = await User.findOneAndDelete({
+			username: params.username,
+		});
 		if (!deletedUser) {
 			return NextResponse.json(
 				{ error: "User not found" },

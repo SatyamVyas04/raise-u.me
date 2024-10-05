@@ -24,6 +24,7 @@ export async function POST(request: NextRequest) {
 		const savedUser = await newUser.save();
 		return NextResponse.json(savedUser, { status: 201 });
 	} catch (error) {
+		console.log(error);
 		return NextResponse.json(
 			{ error: "Internal Server Error" },
 			{ status: 500 }
