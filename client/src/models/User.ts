@@ -11,6 +11,8 @@ interface IUser extends Document {
 	urls: string[];
 	resumeUrl: string;
 	resumePublicId: string;
+	projects: string[];
+	certifications: string[];
 }
 
 const UserSchema = new Schema<IUser>({
@@ -24,6 +26,8 @@ const UserSchema = new Schema<IUser>({
 	urls: { type: [String], required: true },
 	resumeUrl: { type: String, required: true },
 	resumePublicId: { type: String, required: true },
+	projects: { type: [String] },
+	certifications: { type: [String] },
 });
 
 UserSchema.path("name").validate((name: string) => {

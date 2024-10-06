@@ -66,6 +66,8 @@ const formSchema = z.object({
 	resumePublicId: z
 		.string()
 		.min(1, { message: "Resume public ID is required" }),
+	projects: z.array(z.string()),
+	certifications: z.array(z.string()),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -147,6 +149,8 @@ export default function UserProfileForm() {
 			urls: [],
 			resumeUrl: "",
 			resumePublicId: "",
+			projects: [],
+			certifications: [],
 		},
 	});
 
@@ -396,7 +400,7 @@ export default function UserProfileForm() {
 															key={category}
 															value={category}
 														>
-															<ScrollArea className="h-[200px] w-full rounded-md border p-4">
+															<ScrollArea className="h-[150px] w-full rounded-md border p-4">
 																{Object.entries(
 																	subcategories
 																).map(
@@ -448,6 +452,35 @@ export default function UserProfileForm() {
 													)
 												)}
 											</Tabs>
+										</FormDescription>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+
+							<FormField
+								control={form.control}
+								name="projects"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Projects</FormLabel>
+										<FormControl>
+											<Textarea
+												placeholder="Project 1: Description&#10;Project 2: Description"
+												{...field}
+												onChange={(e) =>
+													form.setValue(
+														"projects",
+														e.target.value.split(
+															"\n"
+														)
+													)
+												}
+												value={field.value.join("\n")}
+											/>
+										</FormControl>
+										<FormDescription>
+											Enter each project on a new line
 										</FormDescription>
 										<FormMessage />
 									</FormItem>
@@ -716,6 +749,37 @@ export default function UserProfileForm() {
 												)}
 											</div>
 										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+
+							<FormField
+								control={form.control}
+								name="certifications"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Certifications</FormLabel>
+										<FormControl>
+											<Textarea
+												className="h-[124px]"
+												placeholder="AWS Certified Solutions Architect&#10;Google Cloud Professional Data Engineer"
+												{...field}
+												onChange={(e) =>
+													form.setValue(
+														"certifications",
+														e.target.value.split(
+															"\n"
+														)
+													)
+												}
+												value={field.value.join("\n")}
+											/>
+										</FormControl>
+										<FormDescription>
+											Enter each certification on a new
+											line
+										</FormDescription>
 										<FormMessage />
 									</FormItem>
 								)}
