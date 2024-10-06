@@ -1,34 +1,399 @@
-import img3 from "@/components/images/image.png";
-import Image from "next/image";
+/* eslint-disable react/no-unescaped-entities */
+"use client";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-export default function page() {
-	return (
-		<div className="w-full h-full flex items-center justify-center align-middle flex-col gap-10">
-			<p className="text-5xl font-semibold hover:text-slate-400 hover:cursor-pointer mt-20">
-				Resume Enhancer
-			</p>
-			<div className="w-[600px] h-[300px] bg-gray-600 rounded-2xl">
-				<div className="bg-slate-800 h-10 items-center flex justify-center text-xl rounded-md">
-					<p className=" text-white rounded-xl px-1 font-semibold">
-						Upload your Resume
-					</p>
-				</div>
-				<div className="m-10 flex justify-center items-center">
-					<Image
-						src={img3}
-						alt="Description of the image"
-						layout="fit"
-						objectFit="cover"
-						className="h-48 transition-transform duration-300 ease-in-out hover:scale-105 hover:cursor-pointer"
+import { Loader2, FileText, Upload } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { toast } from "sonner";
+import { useUser } from "@clerk/nextjs";
+import { useMediaQuery } from "@/hooks/use-media-query";
+import { CldUploadWidget } from "next-cloudinary";
+import {
+	Drawer,
+	DrawerClose,
+	DrawerContent,
+	DrawerDescription,
+	DrawerFooter,
+	DrawerHeader,
+	DrawerTitle,
+	DrawerTrigger,
+} from "@/components/ui/drawer";
+import {
+	Sheet,
+	SheetClose,
+	SheetContent,
+	SheetDescription,
+	SheetFooter,
+	SheetHeader,
+	SheetTitle,
+	SheetTrigger,
+} from "@/components/ui/sheet";
+
+interface UserData {
+	name: string;
+	username: string;
+	skills: string[];
+	occupation: string;
+	education: string[];
+	positionsOfResponsibility: string[];
+	experience: string[];
+	urls: string[];
+	resumeUrl: string;
+	resumePublicId: string;
+	projects: string[];
+	certifications: string[];
+}
+
+export default function ResumeEnhancerPage() {
+	const [isEnhancing, setIsEnhancing] = useState(false);
+	const [enhancedData, setEnhancedData] = useState<UserData | null>(null);
+	const [isResumePreviewOpen, setIsResumePreviewOpen] = useState(false);
+	const [userData, setUserData] = useState<UserData | null>(null);
+	const { user } = useUser();
+	const isMobile = useMediaQuery("(max-width: 768px)");
+
+	useEffect(() => {
+		const fetchUserData = async () => {
+			if (user?.username) {
+				try {
+					const response = await fetch(`/api/user/${user.username}`);
+					if (response.ok) {
+						const data = await response.json();
+						setUserData(data);
+					} else {
+						console.error("Failed to fetch user data");
+						toast.error(
+							"Failed to fetch user data. Please try again."
+						);
+					}
+				} catch (error) {
+					console.error("Error fetching user data:", error);
+					toast.error("An error occurred while fetching user data.");
+				}
+			}
+		};
+
+		fetchUserData();
+	}, [user]);
+
+	const enhanceResume = async () => {
+		if (!user?.username || !userData) return;
+
+		setIsEnhancing(true);
+		try {
+			// Simulate API call with a 5-second delay
+			await new Promise((resolve) => setTimeout(resolve, 5000));
+
+			// In a real scenario, you'd send the current user data to your Flask endpoint
+			// const response = await fetch('your-flask-endpoint', {
+			//   method: 'POST',
+			//   body: JSON.stringify(userData),
+			//   headers: { 'Content-Type': 'application/json' },
+			// });
+			// const enhancedData = await response.json();
+
+			// Simulated enhanced data
+			const simulatedEnhancedData: UserData = {
+				...userData,
+				skills: [
+					...userData.skills,
+					"Enhanced Skill 1",
+					"Enhanced Skill 2",
+				],
+				experience: [...userData.experience, "Enhanced Experience 1"],
+				education: [...userData.education, "Enhanced Education 1"],
+				projects: [...userData.projects, "Enhanced Project 1"],
+				certifications: [
+					...userData.certifications,
+					"Enhanced Certification 1",
+				],
+			};
+
+			setEnhancedData(simulatedEnhancedData);
+
+			// Update the user data on the server
+			const updateResponse = await fetch(
+				`/app/api/enhancements/${user.username}`, // Update the endpoint to store enhanced data
+				{
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify(simulatedEnhancedData),
+				}
+			);
+
+			if (updateResponse.ok) {
+				toast.success(
+					"Your resume has been successfully enhanced and updated."
+				);
+			} else {
+				throw new Error("Failed to update user data");
+			}
+		} catch (error) {
+			console.error("Error enhancing resume:", error);
+			toast.error(
+				"There was an error enhancing your resume. Please try again."
+			);
+		} finally {
+			setIsEnhancing(false);
+		}
+	};
+
+	const ResumeSection: React.FC<{ title: string; items: string[] }> = ({
+		title,
+		items,
+	}) => (
+		<Card className="mb-4">
+			<CardHeader>
+				<CardTitle>{title}</CardTitle>
+			</CardHeader>
+			<CardContent>
+				<ul className="list-disc pl-5">
+					{items.map((item, index) => (
+						<li key={index}>{item}</li>
+					))}
+				</ul>
+			</CardContent>
+		</Card>
+	);
+
+	const ResumePreviewTrigger: React.FC = () => (
+		<Button variant="outline" onClick={() => setIsResumePreviewOpen(true)}>
+			<FileText className="mr-2 h-4 w-4" />
+			View Resume
+		</Button>
+	);
+
+	const ResumePreviewContent: React.FC = () => (
+		<>
+			<div className="p-4 pb-0">
+				<div className="aspect-[8.5/11] bg-white">
+					<iframe
+						src={userData?.resumeUrl}
+						className="w-full h-full"
+						title="Resume Preview"
 					/>
 				</div>
-				<div className="flex items-center justify-center mt-20">
-					<Button className="bg-primary-foreground w-52 h-12 rounded-md hover:border-foreground hover:border-4 ">
-						<p className="text-foreground p-2 text-lg font-semibold">
-							Enhance your Resume
-						</p>
-					</Button>
+			</div>
+		</>
+	);
+
+	const handleResumeUpload = async (result: any) => {
+		if (
+			user?.username &&
+			result?.info?.secure_url &&
+			result?.info?.public_id
+		) {
+			const updatedUserData: UserData = {
+				...userData!,
+				resumeUrl: result.info.secure_url,
+				resumePublicId: result.info.public_id,
+			};
+
+			try {
+				const response = await fetch(`/api/user/${user.username}`, {
+					method: "PUT",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify(updatedUserData),
+				});
+
+				if (response.ok) {
+					setUserData(updatedUserData);
+					toast.success(
+						"Your resume has been successfully uploaded and saved."
+					);
+				} else {
+					throw new Error("Failed to update user data");
+				}
+			} catch (error) {
+				console.error("Error updating user data:", error);
+				toast.error(
+					"There was an error saving your resume. Please try again."
+				);
+			}
+		}
+	};
+
+	if (!userData) {
+		return (
+			<div className="flex items-center justify-center h-screen">
+				<Loader2 className="h-16 w-16 animate-spin text-primary" />
+			</div>
+		);
+	}
+
+	return (
+		<div className="container mx-auto px-4 py-8">
+			<h1 className="text-4xl font-bold text-center mb-8">
+				Resume Enhancer
+			</h1>
+			<div className="mb-4 w-full flex flex-col text-center items-center justify-center  ">
+				<div className="flex space-x-2">
+					<CldUploadWidget
+						uploadPreset="raiseume"
+						onSuccess={handleResumeUpload}
+					>
+						{({ open }) => (
+							<Button
+								type="button"
+								variant="outline"
+								onClick={() => open()}
+							>
+								<Upload className="mr-2 h-4 w-4" />
+								{userData.resumeUrl
+									? "Change Resume"
+									: "Upload Resume"}
+							</Button>
+						)}
+					</CldUploadWidget>
+
+					{isMobile ? (
+						<Drawer
+							open={isResumePreviewOpen}
+							onOpenChange={setIsResumePreviewOpen}
+						>
+							<DrawerTrigger asChild>
+								<ResumePreviewTrigger />
+							</DrawerTrigger>
+							<DrawerContent>
+								<DrawerHeader>
+									<DrawerTitle>Resume Preview</DrawerTitle>
+									<DrawerDescription>
+										Your uploaded resume
+									</DrawerDescription>
+								</DrawerHeader>
+								<ResumePreviewContent />
+								<DrawerFooter>
+									<DrawerClose asChild>
+										<Button variant="outline">Close</Button>
+									</DrawerClose>
+								</DrawerFooter>
+							</DrawerContent>
+						</Drawer>
+					) : (
+						<Sheet
+							open={isResumePreviewOpen}
+							onOpenChange={setIsResumePreviewOpen}
+						>
+							<SheetTrigger asChild>
+								<ResumePreviewTrigger />
+							</SheetTrigger>
+							<SheetContent
+								side="right"
+								className="w-[400px] sm:w-[540px]"
+							>
+								<SheetHeader>
+									<SheetTitle>Resume Preview</SheetTitle>
+									<SheetDescription>
+										Your uploaded resume
+									</SheetDescription>
+								</SheetHeader>
+								<ResumePreviewContent />
+								<SheetFooter>
+									<SheetClose asChild>
+										<Button
+											variant="outline"
+											className="mt-2"
+										>
+											Close
+										</Button>
+									</SheetClose>
+								</SheetFooter>
+							</SheetContent>
+						</Sheet>
+					)}
 				</div>
+				{userData.resumeUrl && (
+					<div className="text-sm text-muted-foreground mt-2">
+						Resume uploaded successfully. Click "View Resume" to
+						preview.
+					</div>
+				)}
+			</div>
+
+			<div className="flex flex-col md:flex-row gap-8">
+				<div className="w-full md:w-1/2">
+					<h2 className="text-2xl font-semibold mb-4">
+						Current Resume
+					</h2>
+					<ScrollArea className="h-[calc(90vh-300px)] pr-4">
+						<ResumeSection title="Skills" items={userData.skills} />
+						<ResumeSection
+							title="Experience"
+							items={userData.experience}
+						/>
+						<ResumeSection
+							title="Education"
+							items={userData.education}
+						/>
+						<ResumeSection
+							title="Projects"
+							items={userData.projects}
+						/>
+						<ResumeSection
+							title="Certifications"
+							items={userData.certifications}
+						/>
+					</ScrollArea>
+				</div>
+
+				<div className="w-full md:w-1/2">
+					<h2 className="text-2xl font-semibold mb-4 text-primary">
+						Enhanced Resume
+					</h2>
+					{isEnhancing ? (
+						<div className="flex items-center justify-center h-[calc(90vh-300px)]">
+							<Loader2 className="h-16 w-16 animate-spin text-primary" />
+						</div>
+					) : enhancedData ? (
+						<ScrollArea className="h-[calc(90vh-300px)] pr-4">
+							<ResumeSection
+								title="Enhanced Skills"
+								items={enhancedData.skills}
+							/>
+							<ResumeSection
+								title="Enhanced Experience"
+								items={enhancedData.experience}
+							/>
+							<ResumeSection
+								title="Enhanced Education"
+								items={enhancedData.education}
+							/>
+							<ResumeSection
+								title="Enhanced Projects"
+								items={enhancedData.projects}
+							/>
+							<ResumeSection
+								title="Enhanced Certifications"
+								items={enhancedData.certifications}
+							/>
+						</ScrollArea>
+					) : (
+						<div className="flex items-center justify-center h-[calc(90vh-300px)]">
+							<p className="text-center text-gray-500">
+								Click "Enhance Resume" to see improvement
+								suggestions.
+							</p>
+						</div>
+					)}
+				</div>
+			</div>
+
+			<div className="mt-8 flex justify-center">
+				<Button
+					onClick={enhanceResume}
+					disabled={isEnhancing || !userData.resumeUrl}
+					className="w-64 h-12 text-lg"
+				>
+					{isEnhancing ? (
+						<>
+							<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+							Enhancing...
+						</>
+					) : (
+						"Enhance Resume"
+					)}
+				</Button>
 			</div>
 		</div>
 	);
