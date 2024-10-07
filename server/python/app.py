@@ -1,13 +1,15 @@
-import logging  # Import the correct logging module
+import logging
 import os
 import io
 import json
 from flask import Flask, request, jsonify, send_file, flash, redirect, url_for
+from flask_cors import CORS
 from PyPDF2 import PdfReader
 from dotenv import load_dotenv
 import google.generativeai as genai
 from langchain_core.prompts import PromptTemplate
 from fpdf import FPDF
+import traceback
 
 # Set up logging
 logging.basicConfig(level=logging.WARNING,
@@ -24,9 +26,8 @@ genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
 # Flask app initialization
 app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
 app.secret_key = 'supersecretkey'  # Required for flash messages
-
-# Rest of your code (functions, routes) stays the same...
 
 # PDF Reader Function with Error Handling
 def get_pdf_reader(pdf_file):
@@ -179,10 +180,7 @@ def enhance_resume():
         logging.error(f"Unexpected error: {e}")
         return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
 
-
 # Endpoint to build a resume from user details and job description
-import traceback
-
 @app.route('/build_resume', methods=['POST'])
 def build_resume():
     try:

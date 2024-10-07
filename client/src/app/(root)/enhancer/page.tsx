@@ -50,6 +50,9 @@ export default function ResumeEnhancerPage() {
 	const [enhancedData, setEnhancedData] = useState<UserData | null>(null);
 	const [isResumePreviewOpen, setIsResumePreviewOpen] = useState(false);
 	const [userData, setUserData] = useState<UserData | null>(null);
+	const [jobDescriptionUrl, setJobDescriptionUrl] = useState<string | null>(
+		null
+	);
 	const { user } = useUser();
 	const isMobile = useMediaQuery("(max-width: 768px)");
 
@@ -78,57 +81,59 @@ export default function ResumeEnhancerPage() {
 	}, [user]);
 
 	const enhanceResume = async () => {
-		if (!user?.username || !userData) return;
+		if (!user?.username || !userData || !jobDescriptionUrl) {
+			toast.error("Please upload both resume and job description.");
+			return;
+		}
 
 		setIsEnhancing(true);
 		try {
-			// Simulate API call with a 5-second delay
-			await new Promise((resolve) => setTimeout(resolve, 5000));
+			// Download resume and job description
+			const resumeResponse = await fetch(userData.resumeUrl);
+			const resumeBlob = await resumeResponse.blob();
+			const resumeFile = new File([resumeBlob], "resume.pdf", {
+				type: "application/pdf",
+			});
 
-			// In a real scenario, you'd send the current user data to your Flask endpoint
-			// const response = await fetch('your-flask-endpoint', {
-			//   method: 'POST',
-			//   body: JSON.stringify(userData),
-			//   headers: { 'Content-Type': 'application/json' },
-			// });
-			// const enhancedData = await response.json();
+			const jdResponse = await fetch(jobDescriptionUrl);
+			const jdBlob = await jdResponse.blob();
+			const jdFile = new File([jdBlob], "job_description.pdf", {
+				type: "application/pdf",
+			});
 
-			// Simulated enhanced data
-			const simulatedEnhancedData: UserData = {
-				...userData,
-				skills: [
-					...userData.skills,
-					"Enhanced Skill 1",
-					"Enhanced Skill 2",
-				],
-				experience: [...userData.experience, "Enhanced Experience 1"],
-				education: [...userData.education, "Enhanced Education 1"],
-				projects: [...userData.projects, "Enhanced Project 1"],
-				certifications: [
-					...userData.certifications,
-					"Enhanced Certification 1",
-				],
-			};
+			// Create FormData and append files
+			const formData = new FormData();
+			formData.append("resume", resumeFile);
+			formData.append("job_description", jdFile);
 
-			setEnhancedData(simulatedEnhancedData);
-
-			// Update the user data on the server
-			const updateResponse = await fetch(
-				`/app/api/enhancements/${user.username}`, // Update the endpoint to store enhanced data
+			const response = await fetch(
+				"http://localhost:5000/enhance_resume",
 				{
 					method: "POST",
-					headers: { "Content-Type": "application/json" },
-					body: JSON.stringify(simulatedEnhancedData),
+					body: formData,
 				}
 			);
+			const enhancedData = await response.json();
+			console.log(enhancedData);
 
-			if (updateResponse.ok) {
-				toast.success(
-					"Your resume has been successfully enhanced and updated."
-				);
-			} else {
-				throw new Error("Failed to update user data");
-			}
+			setEnhancedData(enhancedData);
+
+			// // Update the user data on the server
+			// const updateResponse = await fetch(
+			// 	`/app/api/enhancements/${user.username}`,
+			// 	{
+			// 		method: "POST",
+			// 		headers: { "Content-Type": "application/json" },
+			// 		body: JSON.stringify(enhancedData),
+			// 	}
+			// );
+			// if (updateResponse.ok) {
+			// 	toast.success(
+			// 		"Your resume has been successfully enhanced and updated."
+			// 	);
+			// } else {
+			// 	throw new Error("Failed to update user data");
+			// }
 		} catch (error) {
 			console.error("Error enhancing resume:", error);
 			toast.error(
@@ -136,6 +141,13 @@ export default function ResumeEnhancerPage() {
 			);
 		} finally {
 			setIsEnhancing(false);
+		}
+	};
+
+	const handleJobDescriptionUpload = async (result: any) => {
+		if (result?.info?.secure_url) {
+			setJobDescriptionUrl(result.info.secure_url);
+			toast.success("Job description uploaded successfully.");
 		}
 	};
 
@@ -178,60 +190,16 @@ export default function ResumeEnhancerPage() {
 		</>
 	);
 
-	const handleResumeUpload = async (result: any) => {
-		if (
-			user?.username &&
-			result?.info?.secure_url &&
-			result?.info?.public_id
-		) {
-			const updatedUserData: UserData = {
-				...userData!,
-				resumeUrl: result.info.secure_url,
-				resumePublicId: result.info.public_id,
-			};
-
-			try {
-				const response = await fetch(`/api/user/${user.username}`, {
-					method: "PUT",
-					headers: { "Content-Type": "application/json" },
-					body: JSON.stringify(updatedUserData),
-				});
-
-				if (response.ok) {
-					setUserData(updatedUserData);
-					toast.success(
-						"Your resume has been successfully uploaded and saved."
-					);
-				} else {
-					throw new Error("Failed to update user data");
-				}
-			} catch (error) {
-				console.error("Error updating user data:", error);
-				toast.error(
-					"There was an error saving your resume. Please try again."
-				);
-			}
-		}
-	};
-
-	if (!userData) {
-		return (
-			<div className="flex items-center justify-center h-screen">
-				<Loader2 className="h-16 w-16 animate-spin text-primary" />
-			</div>
-		);
-	}
-
 	return (
 		<div className="container mx-auto px-4 py-8">
 			<h1 className="text-4xl font-bold text-center mb-8">
 				Resume Enhancer
 			</h1>
-			<div className="mb-4 w-full flex flex-col text-center items-center justify-center  ">
+			<div className="mb-4 w-full flex flex-col text-center items-center justify-center">
 				<div className="flex space-x-2">
 					<CldUploadWidget
 						uploadPreset="raiseume"
-						onSuccess={handleResumeUpload}
+						onSuccess={handleJobDescriptionUpload}
 					>
 						{({ open }) => (
 							<Button
@@ -240,9 +208,9 @@ export default function ResumeEnhancerPage() {
 								onClick={() => open()}
 							>
 								<Upload className="mr-2 h-4 w-4" />
-								{userData.resumeUrl
-									? "Change Resume"
-									: "Upload Resume"}
+								{jobDescriptionUrl
+									? "Change Job Description"
+									: "Upload Job Description"}
 							</Button>
 						)}
 					</CldUploadWidget>
@@ -303,10 +271,9 @@ export default function ResumeEnhancerPage() {
 						</Sheet>
 					)}
 				</div>
-				{userData.resumeUrl && (
+				{jobDescriptionUrl && (
 					<div className="text-sm text-muted-foreground mt-2">
-						Resume uploaded successfully. Click "View Resume" to
-						preview.
+						Job description uploaded successfully.
 					</div>
 				)}
 			</div>
@@ -317,22 +284,25 @@ export default function ResumeEnhancerPage() {
 						Current Resume
 					</h2>
 					<ScrollArea className="h-[calc(90vh-300px)] pr-4">
-						<ResumeSection title="Skills" items={userData.skills} />
+						<ResumeSection
+							title="Skills"
+							items={userData?.skills || []}
+						/>
 						<ResumeSection
 							title="Experience"
-							items={userData.experience}
+							items={userData?.experience || []}
 						/>
 						<ResumeSection
 							title="Education"
-							items={userData.education}
+							items={userData?.education || []}
 						/>
 						<ResumeSection
 							title="Projects"
-							items={userData.projects}
+							items={userData?.projects || []}
 						/>
 						<ResumeSection
 							title="Certifications"
-							items={userData.certifications}
+							items={userData?.certifications || []}
 						/>
 					</ScrollArea>
 				</div>
@@ -378,11 +348,14 @@ export default function ResumeEnhancerPage() {
 					)}
 				</div>
 			</div>
-
 			<div className="mt-8 flex justify-center">
 				<Button
 					onClick={enhanceResume}
-					disabled={isEnhancing || !userData.resumeUrl}
+					disabled={
+						isEnhancing ||
+						!userData?.resumeUrl ||
+						!jobDescriptionUrl
+					}
 					className="w-64 h-12 text-lg"
 				>
 					{isEnhancing ? (
