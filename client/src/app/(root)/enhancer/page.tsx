@@ -151,6 +151,54 @@ export default function ResumeEnhancerPage() {
 		}
 	};
 
+	const renderEnhancedData = (data: any) => {
+		if (typeof data !== "object" || data === null) {
+			return <p>{String(data)}</p>;
+		}
+
+		return Object.entries(data).map(([key, value]) => (
+			<Card key={key} className="mb-4">
+				<CardHeader>
+					<CardTitle>
+						{key.charAt(0).toUpperCase() + key.slice(1)}
+					</CardTitle>
+				</CardHeader>
+				<CardContent>
+					{Array.isArray(value) ? (
+						<ul className="list-disc pl-5">
+							{value.map((item, index) => (
+								<li key={index}>
+									{typeof item === "object"
+										? renderObjectContent(item)
+										: String(item)}
+								</li>
+							))}
+						</ul>
+					) : typeof value === "object" ? (
+						renderObjectContent(value)
+					) : (
+						<p>{String(value)}</p>
+					)}
+				</CardContent>
+			</Card>
+		));
+	};
+
+	const renderObjectContent = (obj: any) => {
+		return (
+			<ul className="list-none pl-0">
+				{Object.entries(obj).map(([subKey, subValue]) => (
+					<li key={subKey} className="mb-2">
+						<strong>{subKey}:</strong>{" "}
+						{typeof subValue === "object"
+							? JSON.stringify(subValue)
+							: String(subValue)}
+					</li>
+				))}
+			</ul>
+		);
+	};
+
 	const ResumeSection: React.FC<{ title: string; items: string[] }> = ({
 		title,
 		items,
@@ -317,26 +365,7 @@ export default function ResumeEnhancerPage() {
 						</div>
 					) : enhancedData ? (
 						<ScrollArea className="h-[calc(90vh-300px)] pr-4">
-							<ResumeSection
-								title="Enhanced Skills"
-								items={enhancedData.skills}
-							/>
-							<ResumeSection
-								title="Enhanced Experience"
-								items={enhancedData.experience}
-							/>
-							<ResumeSection
-								title="Enhanced Education"
-								items={enhancedData.education}
-							/>
-							<ResumeSection
-								title="Enhanced Projects"
-								items={enhancedData.projects}
-							/>
-							<ResumeSection
-								title="Enhanced Certifications"
-								items={enhancedData.certifications}
-							/>
+							{renderEnhancedData(enhancedData)}
 						</ScrollArea>
 					) : (
 						<div className="flex items-center justify-center h-[calc(90vh-300px)]">
