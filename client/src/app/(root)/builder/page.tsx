@@ -97,80 +97,43 @@ const ResumeSlider = () => {
 };
 
 const JobDescriptionUploader = () => {
-	const [jobDescription, setJobDescription] = useState("");
-	const [file, setFile] = useState<File | null>(null);
+	const [jobDescriptions, setJobDescriptions] = useState("");
 
-	const handleJobDescriptionChange = (e: {
-		target: { value: React.SetStateAction<string> };
-	}) => {
-		setJobDescription(e.target.value);
+	const handleJobDescriptionsChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+		setJobDescriptions(e.target.value);
 	};
 
-	interface FileChangeEvent extends React.ChangeEvent<HTMLInputElement> {}
-
-	const handleFileChange = (e: FileChangeEvent): void => {
-		setFile(e.target.files ? e.target.files[0] : null);
-	};
-
-	const handleSubmit = async (e: { preventDefault: () => void }) => {
+	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 
-		if (!jobDescription && !file) {
-			toast.error("Please enter a job description or upload a file.");
+		if (!jobDescriptions.trim()) {
+			toast.error("Please enter at least one job description.");
 			return;
 		}
 
 		try {
-			let uploadedUrl = "";
+			const descriptions = jobDescriptions.split('\n').filter(desc => desc.trim() !== '');
+			
+			// Here you would typically send the jobDescriptions to your backend
+			console.log("Job Descriptions:", descriptions);
 
-			if (file) {
-				const formData = new FormData();
-				formData.append("file", file);
-				formData.append(
-					"upload_preset",
-					"YOUR_CLOUDINARY_UPLOAD_PRESET"
-				);
-
-				const response = await fetch(
-					`https://api.cloudinary.com/v1_1/YOUR_CLOUDINARY_CLOUD_NAME/upload`,
-					{
-						method: "POST",
-						body: formData,
-					}
-				);
-
-				if (!response.ok) {
-					throw new Error("Failed to upload file to Cloudinary");
-				}
-
-				const data = await response.json();
-				uploadedUrl = data.secure_url;
-			}
-
-			// Here you would typically send the jobDescription or uploadedUrl to your backend
-			console.log("Job Description:", jobDescription);
-			console.log("Uploaded File URL:", uploadedUrl);
-
-			toast.success("Job description submitted successfully!");
+			toast.success("Job descriptions submitted successfully!");
 		} catch (error) {
 			console.error("Error:", error);
-			toast.error(
-				"An error occurred while submitting the job description."
-			);
+			toast.error("An error occurred while submitting the job descriptions.");
 		}
 	};
+	
 
 	return (
 		<form onSubmit={handleSubmit} className="space-y-4">
-			<input
-				type="text"
-				value={jobDescription}
-				onChange={handleJobDescriptionChange}
-				placeholder="Enter job description"
-				className="w-full px-4 py-2 rounded-md bg-accent bg-opacity-20 focus:outline-none focus:ring-2 focus:ring-purple-400"
+			<textarea
+				value={jobDescriptions}
+				onChange={handleJobDescriptionsChange}
+				placeholder="Enter job descriptions (one per line)"
+				className="w-full px-4 py-2 rounded-md bg-accent bg-opacity-20 focus:outline-none focus:ring-2 focus:ring-purple-400 min-h-[16px]"
 			/>
-			<div className="text-center text-sm">--- OR ---</div>
-			<input type="file" onChange={handleFileChange} className="w-full" />
+			
 			<button
 				type="submit"
 				className="w-full px-4 py-2 bg-purple-500 hover:bg-purple-600 rounded-md transition duration-300"
