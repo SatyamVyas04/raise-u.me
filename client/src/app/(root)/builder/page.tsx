@@ -148,6 +148,84 @@ interface ResumeData {
   }>;
 }
 
+const ResumeDisplay: React.FC<{ resumeData: ResumeData }> = ({ resumeData }) => {
+  return (
+    <div className="bg-white text-black p-8 rounded-lg shadow-lg max-w-4xl mx-auto">
+      <h1 className="text-3xl font-bold mb-4">{resumeData.contactInformation.name}</h1>
+      
+      <section className="mb-6">
+        <h2 className="text-xl font-semibold mb-2">Summary</h2>
+        <p>{resumeData.summary}</p>
+      </section>
+      
+      <section className="mb-6">
+        <h2 className="text-xl font-semibold mb-2">Skills</h2>
+        <div className="grid grid-cols-3 gap-4">
+          <div>
+            <h3 className="font-medium">Languages</h3>
+            <ul className="list-disc list-inside">
+              {resumeData.skills.languages.map((skill, index) => (
+                <li key={index}>{skill}</li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h3 className="font-medium">Technologies</h3>
+            <ul className="list-disc list-inside">
+              {resumeData.skills.technologies.map((skill, index) => (
+                <li key={index}>{skill}</li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h3 className="font-medium">Others</h3>
+            <ul className="list-disc list-inside">
+              {resumeData.skills.others.map((skill, index) => (
+                <li key={index}>{skill}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </section>
+      
+      <section className="mb-6">
+        <h2 className="text-xl font-semibold mb-2">Experience</h2>
+        {resumeData.experience.map((exp, index) => (
+          <div key={index} className="mb-4">
+            <h3 className="font-medium">{exp.title} at {exp.company}</h3>
+            <p className="text-sm text-gray-600">{exp.startDate} - {exp.endDate}</p>
+            <p>{exp.description}</p>
+          </div>
+        ))}
+      </section>
+      
+      <section className="mb-6">
+        <h2 className="text-xl font-semibold mb-2">Education</h2>
+        {resumeData.education.map((edu, index) => (
+          <div key={index} className="mb-4">
+            <h3 className="font-medium">{edu.degree}</h3>
+            <p>{edu.institution}, {edu.location}</p>
+            <p className="text-sm text-gray-600">{edu.startDate} - {edu.endDate}</p>
+            <p>GPA: {edu.gpa}</p>
+          </div>
+        ))}
+      </section>
+      
+      <section className="mb-6">
+        <h2 className="text-xl font-semibold mb-2">Projects</h2>
+        {resumeData.projects.map((project, index) => (
+          <div key={index} className="mb-4">
+            <h3 className="font-medium">{project.title}</h3>
+            <p>{project.description}</p>
+            <p className="text-sm">Technologies: {project.technologies.join(', ')}</p>
+            <a href={project.link} className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">Project Link</a>
+          </div>
+        ))}
+      </section>
+    </div>
+  );
+};
+
 const JobDescriptionUploader = () => {
   const [jobDescriptions, setJobDescriptions] = useState("");
   const { user } = useUser();
@@ -286,15 +364,11 @@ const JobDescriptionUploader = () => {
       </form>
 
       {resumeData && (
-        <div className="mt-8 p-4 bg-secondary rounded-md shadow-md">
+        <div className="mt-8">
           <h3 className="text-2xl font-semibold mb-4 text-secondary-foreground">
             Generated Resume
           </h3>
-          <div className="bg-background p-4 rounded-md overflow-auto">
-            <pre className="whitespace-pre-wrap text-foreground">
-              {JSON.stringify(resumeData, null, 2)}
-            </pre>
-          </div>
+          <ResumeDisplay resumeData={resumeData} />
         </div>
       )}
     </div>
@@ -312,7 +386,7 @@ export default function Home() {
 
         <ResumeSlider />
 
-        <div className="mt-20 max-w-md mx-auto">
+        <div className="mt-20 max-w-4xl mx-auto">
           <div className="">
             <h2 className="text-3xl font-semibold mb-8 text-center">
               Build Your Resume
