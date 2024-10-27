@@ -2,21 +2,24 @@ import logging
 import os
 import io
 import json
-from flask import Flask, request, jsonify, send_file, flash, redirect, url_for
-from flask_cors import CORS
-from PyPDF2 import PdfReader
-from dotenv import load_dotenv
-import google.generativeai as genai
-from langchain_core.prompts import PromptTemplate
-from fpdf import FPDF
+from flask import Flask, request, jsonify, send_file, flash, redirect, url_for  # type: ignore
+from flask_cors import CORS  # type: ignore
+from PyPDF2 import PdfReader  # type: ignore
+from dotenv import load_dotenv  # type: ignore
+import google.generativeai as genai  # type: ignore
+from langchain_core.prompts import PromptTemplate  # type: ignore
+from fpdf import FPDF  # type: ignore
 import traceback
 
-# Set up logging
-logging.basicConfig(level=logging.WARNING,
-                    filename="logs.log",
-                    filemode="a",
-                    format="%(asctime)s - %(levelname)s - %(message)s",
-                    datefmt="%Y-%m-%d %H:%M:%S")
+import re
+import wikipedia  # type: ignore
+import requests  # type: ignore
+from bs4 import BeautifulSoup  # type: ignore
+from typing import Optional, List, Dict  # type: ignore
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
@@ -28,6 +31,7 @@ genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 app.secret_key = 'supersecretkey'  # Required for flash messages
+
 
 # PDF Reader Function with Error Handling
 def get_pdf_reader(pdf_file):
@@ -46,6 +50,8 @@ def get_pdf_reader(pdf_file):
         raise
 
 # Custom PDF class for resume formatting
+
+
 class ResumePDF(FPDF):
     def header(self):
         pass
@@ -57,7 +63,8 @@ class ResumePDF(FPDF):
         self.set_font('Arial', 'B', 16)
         self.cell(0, 10, name, ln=True, align='C')
         self.set_font('Arial', '', 12)
-        self.cell(0, 10, f'Email: {email} | Phone: {phone}', ln=True, align='C')
+        self.cell(0, 10, f'''Email: {email} | Phone: {
+                  phone}''', ln=True, align='C')
         self.ln(10)
 
     def section_title(self, title):
@@ -77,13 +84,16 @@ class ResumePDF(FPDF):
             self.cell(0, 10, f"- {point}", ln=True)
 
 # Function to generate formatted PDF resume from the AI-enhanced text
+
+
 def create_pdf(resume_text, output_filename="enhanced_resume.pdf"):
     try:
         name = "John Doe"  # Extract from resume_text if needed
         email = "johndoe@email.com"  # Extract from resume_text if needed
         phone = "+123456789"  # Extract from resume_text if needed
 
-        sections = resume_text.split("\n\n")  # Split into sections by double line breaks
+        # Split into sections by double line breaks
+        sections = resume_text.split("\n\n")
 
         pdf = ResumePDF()
         pdf.set_auto_page_break(auto=True, margin=15)
@@ -112,6 +122,8 @@ def create_pdf(resume_text, output_filename="enhanced_resume.pdf"):
         raise
 
 # Enhanced resume generation endpoint
+
+
 @app.route('/enhance_resume', methods=['POST'])
 def enhance_resume():
     try:
@@ -163,7 +175,7 @@ def enhance_resume():
             json_end = cleaned_response.rfind('}') + 1
             if json_start != -1 and json_end != -1:
                 cleaned_response = cleaned_response[json_start:json_end]
-            
+
             resume_json = json.loads(cleaned_response)
 
             logging.info("Parsed resume JSON successfully.")
@@ -172,7 +184,7 @@ def enhance_resume():
         except json.JSONDecodeError as e:
             logging.error(f"Error parsing AI response: {e}")
             logging.error(f"Cleaned AI response content: {cleaned_response}")
-            
+
             # If JSON parsing fails, return the cleaned text response
             return jsonify({"error": "Failed to parse as JSON. Raw response:", "content": cleaned_response}), 500
 
@@ -181,6 +193,8 @@ def enhance_resume():
         return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
 
 # Endpoint to build a resume from user details and job description
+
+
 @app.route('/build_resume', methods=['POST'])
 def build_resume():
     try:
@@ -189,7 +203,8 @@ def build_resume():
         logging.info(f"Received data: {data}")
 
         # Validate input data
-        required_fields = ['name', 'email', 'phone', 'skills', 'experience', 'education', 'projects', 'job_description']
+        required_fields = ['name', 'email', 'phone', 'skills',
+                           'experience', 'education', 'projects', 'job_description']
         for field in required_fields:
             if field not in data or not data[field]:
                 logging.error(f"Missing or empty required field: {field}")
@@ -240,17 +255,17 @@ Return ONLY the JSON object, with no additional text."""
         try:
             logging.info("Processing AI response")
             cleaned_response = result.text.strip()
-            
+
             # Find the JSON object in the response
             json_start = cleaned_response.find('{')
             json_end = cleaned_response.rfind('}') + 1
-            
+
             if json_start == -1 or json_end == -1:
                 raise ValueError("No valid JSON object found in the response")
-                
+
             cleaned_response = cleaned_response[json_start:json_end]
             logging.info(f"Extracted JSON: {cleaned_response}")
-            
+
             resume_json = json.loads(cleaned_response)
             logging.info("Parsed resume JSON successfully.")
 
@@ -270,6 +285,192 @@ Return ONLY the JSON object, with no additional text."""
         logging.error(f"Unexpected error in build_resume: {e}")
         logging.error(traceback.format_exc())
         return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
+
+
+def get_wiki_image(page_title: str) -> Optional[str]:
+    """
+    Get the main image from a Wikipedia page's infobox.
+
+    Args:
+        page_title: The title of the Wikipedia page
+
+    Returns:
+        Optional[str]: URL of the image if found, None otherwise
+    """
+    try:
+        page = wikipedia.page(page_title, auto_suggest=False)
+        response = requests.get(page.url, timeout=10)
+        response.raise_for_status()
+
+        soup = BeautifulSoup(response.text, 'html.parser')
+
+        # Try multiple approaches to find the image
+        image = None
+        # First try infobox
+        infobox = soup.find('table', {'class': 'infobox'})
+        if infobox:
+            image = infobox.find('img')
+
+        # If no image in infobox, try first image in article
+        if not image:
+            image = soup.find('img', {'class': 'biography'}) or soup.find(
+                'img', {'class': 'thumbimage'})
+
+        if image and 'src' in image.attrs:
+            image_url = image['src']
+            if not image_url.startswith('http'):
+                image_url = f"https:{image_url}"
+            return image_url
+
+        return None
+
+    except Exception as e:
+        logger.error(f"Error fetching image for {page_title}: {str(e)}")
+        return None
+
+
+def extract_skills(text: str) -> List[str]:
+    """
+    Extract relevant skills and keywords from text.
+
+    Args:
+        text: The text to analyze
+
+    Returns:
+        List[str]: List of found skills
+    """
+    tech_keywords = {
+        'technical': [
+            'AI', 'artificial intelligence', 'machine learning', 'deep learning',
+            'technology', 'computing', 'software', 'hardware', 'engineering',
+            'programming', 'computer science', 'data science', 'cloud computing',
+            'robotics', 'automation'
+        ],
+        'business': [
+            'innovation', 'entrepreneurship', 'leadership', 'business strategy',
+            'management', 'startup', 'venture capital', 'investment',
+            'philanthropy', 'strategic planning', 'business development'
+        ]
+    }
+
+    found_skills = set()
+    text_lower = text.lower()
+
+    for category, keywords in tech_keywords.items():
+        for keyword in keywords:
+            if keyword.lower() in text_lower:
+                found_skills.add(keyword)
+
+    return sorted(list(found_skills))
+
+
+class LeaderNotFoundException(Exception):
+    pass
+
+
+class WikipediaFetchError(Exception):
+    pass
+
+
+def get_leader_info(name: str) -> Dict:
+    """
+    Fetch and compile information about a tech leader.
+
+    Args:
+        name: The leader's full name
+
+    Returns:
+        Dict: Leader information including summary, image, and skills
+
+    Raises:
+        WikipediaFetchError: If Wikipedia data cannot be fetched
+    """
+    try:
+        # Use exact match to avoid disambiguation issues
+        page = wikipedia.page(name, auto_suggest=False)
+
+        # Get first 10000 chars for better skill extraction
+        content_sample = page.content[:10000]
+
+        return {
+            'name': name,
+            'summary': page.summary,
+            'image': get_wiki_image(name),
+            'skills': extract_skills(content_sample),
+            'url': page.url
+        }
+    except wikipedia.exceptions.DisambiguationError as e:
+        logger.error(f"Disambiguation error for {name}: {str(e)}")
+        # Try to find the most relevant page from options
+        for option in e.options:
+            if re.search(r'\b(businessman|entrepreneur|executive|CEO)\b', option, re.IGNORECASE):
+                try:
+                    return get_leader_info(option)
+                except:
+                    continue
+        raise WikipediaFetchError(
+            f"Could not resolve disambiguation for {name}")
+    except Exception as e:
+        logger.error(f"Error fetching info for {name}: {str(e)}")
+        raise WikipediaFetchError(f"Failed to fetch information for {name}")
+
+
+@app.route('/api/leaders')
+def get_leaders():
+    """API endpoint to get information about all tech leaders."""
+    leaders = [
+        {'id': 'jensen-huang', 'name': 'Jensen Huang'},
+        {'id': 'sam-altman', 'name': 'Sam Altman'},
+        {'id': 'bill-gates', 'name': 'Bill Gates'},
+    ]
+
+    response_data = []
+    for leader in leaders:
+        try:
+            info = get_leader_info(leader['name'])
+            response_data.append({
+                'id': leader['id'],
+                **info
+            })
+        except WikipediaFetchError as e:
+            logger.error(f"Failed to fetch leader data: {str(e)}")
+            response_data.append({
+                'id': leader['id'],
+                'name': leader['name'],
+                'summary': 'Information temporarily unavailable',
+                'image': None,
+                'skills': [],
+                'error': str(e)
+            })
+
+    return jsonify(response_data)
+
+
+@app.route('/api/leaders/<leader_id>')
+def get_leader_details(leader_id: str):
+    """API endpoint to get detailed information about a specific tech leader."""
+    name_map = {
+        'jensen-huang': 'Jensen Huang',
+        'sam-altman': 'Sam Altman',
+        'bill-gates': 'Bill Gates'
+    }
+
+    name = name_map.get(leader_id)
+    if not name:
+        return jsonify({'error': 'Leader not found'}), 404
+
+    try:
+        leader_info = get_leader_info(name)
+        return jsonify({
+            'id': leader_id,
+            **leader_info
+        })
+    except WikipediaFetchError as e:
+        return jsonify({
+            'error': str(e),
+            'details': 'Failed to fetch leader information'
+        }), 500
+
 
 if __name__ == "__main__":
     app.run(debug=True)
