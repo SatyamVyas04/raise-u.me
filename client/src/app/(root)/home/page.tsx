@@ -38,7 +38,7 @@ const LeaderCard = ({
 	leader,
 	isLoading,
 }: {
-	leader: Leader | null;
+	leader: null;
 	isLoading: boolean;
 }) => {
 	if (isLoading) {
@@ -72,7 +72,7 @@ const LeaderCard = ({
 			<div className="p-6 flex flex-col justify-between items-start">
 				<h3 className="font-semibold text-lg mb-4">{leader.name}</h3>
 				<div className="flex flex-wrap gap-2 mb-4">
-					{leader.skills.slice(0, 3).map((skill) => (
+					{leader.skills.slice(0, 3).map((skill: boolean | React.Key | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | Promise<React.AwaitedReactNode> | null | undefined) => (
 						<Badge
 							key={skill}
 							className="rounded-full"
