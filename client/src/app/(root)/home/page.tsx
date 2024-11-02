@@ -98,7 +98,7 @@ const LeaderCard = ({
 									| undefined
 							) => (
 								<Badge
-									key={randomUUID()}
+									key={"1"}
 									className="rounded-full"
 									variant="outline"
 								>

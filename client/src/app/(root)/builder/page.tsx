@@ -301,13 +301,17 @@ const JobDescriptionUploader = () => {
 		setResumeData(null); // Reset previous resume data
 
 		try {
-			const response = await fetch("http://localhost:5000/build_resume", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify(payload),
-			});
+			const response = await fetch(
+				"https://finer-lacewing-rational.ngrok-free.app/build_resume",
+				{
+					method: "POST",
+					headers: new Headers({
+						"ngrok-skip-browser-warning": "69420",
+						"Content-Type": "application/json",
+					}),
+					body: JSON.stringify(payload),
+				}
+			);
 
 			if (response.ok) {
 				const data: ResumeData = await response.json();
