@@ -7,6 +7,8 @@ interface Leader {
 	image: string;
 	skills: string[];
 	summary: string;
+	subtitle: string;
+	url: string;
 }
 
 // Cache object to store API responses

@@ -35,11 +35,18 @@ const quickActions = [
 	},
 ];
 
+type Leader = {
+	id: string;
+	name: string;
+	image: string;
+	skills: string[];
+};
+
 const LeaderCard = ({
 	leader,
 	isLoading,
 }: {
-	leader: { id: string; name: string; image: string; skills: any[] } | null;
+	leader: Leader | null;
 	isLoading: boolean;
 }) => {
 	if (isLoading) {
