@@ -10,6 +10,7 @@ import { FileEdit, Palette, Zap, Settings } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLeaders } from "@/hooks/useLeaders";
+import { randomUUID } from "crypto";
 
 const quickActions = [
 	{
@@ -33,6 +34,13 @@ const quickActions = [
 		icon: <Settings className="w-5 h-5" />,
 	},
 ];
+
+type Leader = {
+	id: string;
+	name: string;
+	image: string;
+	skills: string[];
+};
 
 const LeaderCard = ({
 	leader,
@@ -72,15 +80,32 @@ const LeaderCard = ({
 			<div className="p-6 flex flex-col justify-between items-start">
 				<h3 className="font-semibold text-lg mb-4">{leader.name}</h3>
 				<div className="flex flex-wrap gap-2 mb-4">
-					{leader.skills.slice(0, 3).map((skill) => (
-						<Badge
-							key={skill}
-							className="rounded-full"
-							variant="outline"
-						>
-							{skill}
-						</Badge>
-					))}
+					{leader.skills
+						.slice(0, 3)
+						.map(
+							(
+								skill:
+									| boolean
+									| React.Key
+									| React.ReactElement<
+											any,
+											| string
+											| React.JSXElementConstructor<any>
+									  >
+									| Iterable<React.ReactNode>
+									| Promise<React.AwaitedReactNode>
+									| null
+									| undefined
+							) => (
+								<Badge
+									key={"1"}
+									className="rounded-full"
+									variant="outline"
+								>
+									{skill}
+								</Badge>
+							)
+						)}
 					{leader.skills.length > 3 && (
 						<Badge variant="outline" className="rounded-full">
 							+{leader.skills.length - 3} more

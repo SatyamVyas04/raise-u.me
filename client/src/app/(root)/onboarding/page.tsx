@@ -4,7 +4,7 @@ import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useUser } from "@clerk/nextjs";
-import { CldUploadWidget } from "next-cloudinary";
+import { CldUploadWidget, CloudinaryUploadWidgetInfo } from "next-cloudinary";
 import {
 	Form,
 	FormControl,
@@ -624,13 +624,13 @@ export default function UserProfileForm() {
 														) => {
 															form.setValue(
 																"resumeUrl",
-																results?.info
-																	?.secure_url // ignore error
+																(results?.info as CloudinaryUploadWidgetInfo)
+																	?.secure_url
 															);
 															form.setValue(
 																"resumePublicId",
-																results?.info
-																	?.public_id // ignore error
+																(results?.info as CloudinaryUploadWidgetInfo)
+																	?.public_id
 															);
 															toast.success(
 																"Resume uploaded successfully"

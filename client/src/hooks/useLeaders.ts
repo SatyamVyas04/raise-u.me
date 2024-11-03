@@ -7,6 +7,8 @@ interface Leader {
 	image: string;
 	skills: string[];
 	summary: string;
+	subtitle: string;
+	url: string;
 }
 
 // Cache object to store API responses
@@ -32,7 +34,12 @@ export function useLeaders() {
 				}
 
 				const response = await fetch(
-					"http://localhost:5000/api/leaders"
+					"https://finer-lacewing-rational.ngrok-free.app/api/leaders",
+					{
+						headers: new Headers({
+							"ngrok-skip-browser-warning": "69420",
+						}),
+					}
 				);
 				const data = await response.json();
 
@@ -69,7 +76,12 @@ export function useLeaderDetails(id: string) {
 				}
 
 				const response = await fetch(
-					`http://localhost:5000/api/leaders/${id}`
+					`https://finer-lacewing-rational.ngrok-free.app/api/leaders/${id}`,
+					{
+						headers: new Headers({
+							"ngrok-skip-browser-warning": "69420",
+						}),
+					}
 				);
 				const data = await response.json();
 
