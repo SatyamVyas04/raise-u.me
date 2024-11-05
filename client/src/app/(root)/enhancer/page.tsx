@@ -107,12 +107,12 @@ export default function ResumeEnhancerPage() {
 			formData.append("job_description", jdFile);
 
 			const response = await fetch(
-				"https://finer-lacewing-rational.ngrok-free.app/enhance_resume",
+				"http://localhost:5000/enhance_resume",
 				{
 					method: "POST",
 					headers: new Headers({
 						"ngrok-skip-browser-warning": "69420",
-					  }),
+					}),
 					body: formData,
 				}
 			);

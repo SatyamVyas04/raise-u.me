@@ -34,7 +34,7 @@ export function useLeaders() {
 				}
 
 				const response = await fetch(
-					"https://finer-lacewing-rational.ngrok-free.app/api/leaders",
+					"http://localhost:5000/api/leaders",
 					{
 						headers: new Headers({
 							"ngrok-skip-browser-warning": "69420",
@@ -76,7 +76,7 @@ export function useLeaderDetails(id: string) {
 				}
 
 				const response = await fetch(
-					`https://finer-lacewing-rational.ngrok-free.app/api/leaders/${id}`,
+					`http://localhost:5000/api/leaders/${id}`,
 					{
 						headers: new Headers({
 							"ngrok-skip-browser-warning": "69420",

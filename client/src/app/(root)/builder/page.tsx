@@ -302,7 +302,7 @@ const JobDescriptionUploader = () => {
 
 		try {
 			const response = await fetch(
-				"https://finer-lacewing-rational.ngrok-free.app/build_resume",
+				"http://localhost:5000/build_resume",
 				{
 					method: "POST",
 					headers: new Headers({
