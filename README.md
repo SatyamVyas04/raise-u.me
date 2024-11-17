@@ -39,15 +39,63 @@
 
 ```mermaid
 classDiagram
-    User --> Profile
-    User --> ResumeEnhancer
-    User --> ResumeBuilder
-    User --> MarketInsights
-    Profile --> Cloudinary
-    ResumeEnhancer --> GeminiAPI
-    ResumeBuilder --> Templates
-    MarketInsights --> GitHubJobsAPI
-    MarketInsights --> USAJobsAPI
+    class User {
+        +createProfile()
+        +enhanceResume()
+        +buildResume()
+        +viewMarketInsights()
+    }
+    
+    class Profile {
+        +personalInfo
+        +workExperience
+        +education
+        +skills
+        +uploadMedia()
+        +updateInfo()
+    }
+    
+    class ResumeEnhancer {
+        +analyzeResume()
+        +suggestImprovements()
+        +matchJobDescription()
+    }
+    
+    class ResumeBuilder {
+        +selectTemplate()
+        +fillInformation()
+        +customizeDesign()
+        +exportResume()
+    }
+    
+    class MarketInsights {
+        +fetchTrends()
+        +analyzeDemand()
+        +showPopularSkills()
+    }
+    
+    class ExternalServices {
+        +Cloudinary
+        +GeminiAPI
+        +GitHubJobsAPI
+        +USAJobsAPI
+    }
+
+    class Templates {
+        +design
+        +layout
+        +style
+    }
+
+    User --> Profile : manages
+    User --> ResumeEnhancer : uses
+    User --> ResumeBuilder : creates with
+    User --> MarketInsights : views
+    
+    Profile ..> ExternalServices : stores in Cloudinary
+    ResumeEnhancer ..> ExternalServices : uses Gemini API
+    ResumeBuilder --> Templates : uses
+    MarketInsights ..> ExternalServices : fetches from APIs
 ```
 
 1. **User**:
