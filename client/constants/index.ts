@@ -3,6 +3,7 @@ import {
 	UserCircleIcon as ProfileIcon,
 	CalculatorIcon as RoadmapIcon,
 	DocumentPlusIcon,
+	ChartBarIcon as MarketIcon,
 	DocumentCheckIcon,
 } from "@heroicons/react/20/solid";
 
@@ -11,6 +12,10 @@ export const sidebarLinks = [
 	{ label: "Profile", route: "/profile", imgUrl: ProfileIcon },
 	{ label: "ResumeEnhancer", route: "/enhancer", imgUrl: DocumentCheckIcon },
 	{ label: "ResumeBuilder", route: "/builder", imgUrl: DocumentPlusIcon },
-	{label:"Saved Templates",route:"/savedtemplates",imgUrl:DocumentPlusIcon}
-
+	{ label: "The Market", route: "/market", imgUrl: MarketIcon },
+	{
+		label: "Saved Templates",
+		route: "/savedtemplates",
+		imgUrl: DocumentPlusIcon,
+	},
 ];
